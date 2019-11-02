@@ -2,7 +2,16 @@ package com.configure.app.appconfig.bean;
 
 import java.io.Serializable;
 
-public class ResponseData<T> implements Serializable {
+import javax.swing.text.html.HTML;
+
+import org.springframework.http.ResponseEntity;
+
+/**
+ * @author vivek
+ *
+ * @param <T>
+ */
+public class ResponseResources<T> implements Serializable {
 
 	/**
 	 * 
@@ -22,25 +31,29 @@ public class ResponseData<T> implements Serializable {
 	public static final String RES_SUCCESS = "OK";
 	public static final String RES_FAILURE = "OPERATION FAILED";
 	public static final String RES_NO_DATA = "NO DATA";
+	
 
-	public ResponseData() {
-		this.message = ResponseData.R_MSG_EMPTY;
+	public ResponseResources() {
+		this.message = ResponseResources.R_MSG_EMPTY;
 		this.status = "Success";
 		this.setData(data);
 
 	}
 
-	public ResponseData(final Integer code, final String message, T data, final String status) {
-		this.message = message == null ? ResponseData.R_MSG_EMPTY : message;
+	public ResponseResources(final Integer code, final String message, T data, final String status) {
+		this.message = message == null ? ResponseResources.R_MSG_EMPTY : message;
 		this.status = status == null ? "Failure" : status;
 		this.setData(data);
 	}
 
-	public ResponseData(T data) {
-		this.message = ResponseData.R_MSG_EMPTY;
+	public ResponseResources(T data) {
+		this.message = ResponseResources.R_MSG_EMPTY;
 		this.data = data;
 		this.status = "Success";
 	}
+
+
+	
 
 	public T getData() {
 		return data;

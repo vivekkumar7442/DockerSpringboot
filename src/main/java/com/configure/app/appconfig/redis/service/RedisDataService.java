@@ -32,6 +32,16 @@ public class RedisDataService implements IRedisDataServiceRepository {
 	public void putHash(String key, Object hashKey, Object value) {
 		hashOperations.put(key, hashKey, value);
 	}
+	
+	 public static void main(String[] args) {
+		 
+		 StringBuilder s1=new StringBuilder("JAVA");
+		 String s2="Love";
+		 s1.append(s2);
+		 s1.substring(4);
+		 System.out.println(s1.indexOf(s2));
+		
+	}
 
 	@Override
 	public void putHash(String key, Object hashKey, Object value, int expirationSeconds) {

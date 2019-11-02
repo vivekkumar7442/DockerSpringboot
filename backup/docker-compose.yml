@@ -1,0 +1,26 @@
+version: '3'
+services:
+  redis-server:
+    image: redis
+    environment:
+      REDIS_HOST: redis-server
+      REDIS_PORT: 6379
+  my-app:
+    build: .
+    ports:
+    - 8989:8989
+    environment:
+      DB_URL: jdbc:mysql://my-sql:3306/fileservice?zeroDateTimeBehavior=convertToNull&autoReconnect=true&failOverReadOnly=false&maxReconnects=2&useSSL=false
+      DB_UNAME: root
+      DB_PWD: root
+    depends_on:
+      - my-sql
+      - redis-server
+  my-sql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root
+     
+     

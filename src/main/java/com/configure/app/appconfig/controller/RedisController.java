@@ -1,19 +1,14 @@
 package com.configure.app.appconfig.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,15 +16,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.configure.app.appconfig.bean.RequestData;
-import com.configure.app.appconfig.bean.ResponseData;
-import com.configure.app.appconfig.bean.UserBean;
+import com.configure.app.appconfig.bean.ResponseResources;
 import com.configure.app.appconfig.entity.Address;
 import com.configure.app.appconfig.entity.User;
 import com.configure.app.appconfig.entity.UserRepository;
 import com.configure.app.appconfig.redis.service.IRedisDataServiceRepository;
 
+/**
+ * @author vivek
+ * 
+ * this class is used for Testing purpose of redis storage and Retrival
+ *
+ */
 @RestController
 @RequestMapping("/redis")
 public class RedisController {
@@ -39,20 +40,34 @@ public class RedisController {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	RestTemplate restTemplate;
 
+	/**
+	 * @author vivek
+	 * @param key
+	 * @param keyValue
+	 * @return
+	 */
 	@RequestMapping(value = "/value", method = RequestMethod.GET)
-	public ResponseData<RequestData> getRedisValue(@RequestParam(value = "key") String key,
+	public ResponseResources<RequestData> getRedisValue(@RequestParam(value = "key") String key,
 			@RequestParam(value = "keyValue") String keyValue) {
 		RequestData data = new RequestData();
 		Object object = iRedisDataServiceRepository.getHash(key, keyValue);
 		data.setData(object);
 
-		return new ResponseData<RequestData>(data);
+		return new ResponseResources<RequestData>(ResponseResources.R_CODE_OK, ResponseResources.RES_SUCCESS, data, "Success");
 
 	}
 
+	/**
+	 * @author vivek
+	 * @param requestData
+	 * @return
+	 */
 	@RequestMapping(value = "/values", method = RequestMethod.POST)
-	public ResponseData getRedisValue(@RequestBody RequestData requestData) {
+	public ResponseResources getRedisValue(@RequestBody RequestData requestData) {
 		for (int i = 0; i < 100000; i++) {
 			User user = userRepository.findById(4).get();
 
@@ -68,55 +83,40 @@ public class RedisController {
 
 		iRedisDataServiceRepository.putHash(requestData.getHashKey(), requestData.getKey(), requestData.getData());
 
-		return new ResponseData<>();
+		return new ResponseResources<>();
 
 	}
-	
-	@RequestMapping(value = "/user", method = RequestMethod.POST)
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param requestData
+	 * @return
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
+	@RequestMapping(value = "/user", method = RequestMethod.GET)
 	@Transactional
-	public @ResponseBody ResponseData getUserData(@RequestBody RequestData requestData)
-			throws InterruptedException, ExecutionException {
-		ResponseData data = new ResponseData<>();
+	public @ResponseBody <T> ResponseResources getUserData() {
+		ResponseEntity<String> h = restTemplate
+				.getForEntity("http://164.100.128.10/mfmsReports/getProductWiseStockAsOnDate", String.class);
+		//HTML h1=	h.getBody();
 
-	
-		
-		List<User> users=userRepository.findAll(getTaskFilter(null, null, null, null));
+		//Document d = Jsoup.parse(h.toString());
+		FileWriter fWriter = null;
+		BufferedWriter writer = null;
+		try {
+		    fWriter = new FileWriter("fileName.html");
+		    writer = new BufferedWriter(fWriter);
+		    writer.write(h.getBody());
+		    writer.newLine(); //this is not actually needed for html files - can make your code more readable though 
+		    writer.close(); //make sure you close the writer object 
+		} catch (Exception e) {
+		  //catch any exceptions here
+		}
 
-		List<UserBean> response = users.stream().map(UserBean::new).collect(Collectors.toList());
-		System.currentTimeMillis();
+		return null;
 
-		return new ResponseData(response);
-
-	}
-	
-	List<User> getUser(Integer i){
-	return	userRepository.findAll( PageRequest.of( i, 10)).getContent();
-
-		
-	}
-	
-public CompletableFuture<List<User>> calculateAsync(){
-	CompletableFuture<List<User>> completableFuture=new CompletableFuture<>();
-	completableFuture.supplyAsync(() ->userRepository.findAll());
-
-	return completableFuture;
-}
-
-	public static final Specification<User> getTaskFilter(final String groupName, final List<String> status,
-			String userName, Integer serviceId) {
-		return new Specification<User>() {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-				final List<Predicate> predicates = new ArrayList<>();
-				return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-			}
-		};
 	}
 
 }
