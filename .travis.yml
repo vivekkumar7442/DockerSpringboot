@@ -1,7 +1,8 @@
 sudo: required
 services:
- -docker
+  -docker
 before_install:
-  sudo -docker build --tag vivek744/dockerspringboot .
- sudo  -docker run vivek744/dockerspringboot
+  -docker build --tag vivek744/dockerspringboot .
+
+ 
 
